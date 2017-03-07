@@ -2,15 +2,27 @@
 #include <cxxtest/TestSuite.h>
 #include "Switcher.h"
 
+void someCallback(char) {
+
+}
+
 class SwitcherTest : public CxxTest::TestSuite
 {
 public:
-    void testAddition(void)
+    void testConstructor(void)
+    {
+    	//void (*changeCallbackPtr)(char) = someCallback;
+    	int buttonPin = 1;
+    	Switcher switcher = Switcher(buttonPin, someCallback);
+    	switcher.setup();
+        TS_ASSERT_EQUALS(getPinMode(buttonPin), INPUT_PULLUP);
+    }
+
+	void testSetup(void)
     {
     	int buttonPin = 1;
     	Switcher switcher = Switcher(buttonPin);
-    	//switcher.setup();
-        TS_ASSERT(1 + 1 > 1);
-        TS_ASSERT_EQUALS(1 + 1, 2);
+    	switcher.setup();
+        TS_ASSERT_EQUALS(getPinMode(buttonPin), INPUT_PULLUP);
     }
 };
