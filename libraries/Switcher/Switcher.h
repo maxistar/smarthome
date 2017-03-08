@@ -15,6 +15,8 @@ class Switcher {
     void _onReleased();
     void _onChanged(char state);
 
+    void _setup(int buttonPin);
+
     public:
     Switcher(int buttonPin);
     Switcher(int buttonPin, void (*changeCallbackPtr)(char));

@@ -7,21 +7,26 @@
 #define DEBOUNCE 50
 
 Switcher::Switcher(int buttonPin){
+	this->_setup(buttonPin);
+} 
+
+Switcher::Switcher(int buttonPin, void (*changeCallbackPtr)(char)) {
+	this->_setup(buttonPin);
+	this->changeCallbackPtr = changeCallbackPtr;
+}
+
+void Switcher::_setup(int buttonPin) {
     this->buttonPin = buttonPin;
     changeCallbackPtr = NULL;
     pressCallbackPtr = NULL;
     releaseCallbackPtr = NULL;
-} 
-
-Switcher::Switcher(int buttonPin, void (*changeCallbackPtr)(char)) {
-    this->changeCallbackPtr = changeCallbackPtr;
-    pressCallbackPtr = NULL;
-    releaseCallbackPtr = NULL;
-    this->buttonPin = buttonPin;
+    this->debounceLastTime = 0;
+    this->isDebouncing = 0;
 }
 
 void Switcher::setup(){
     pinMode(this->buttonPin, INPUT_PULLUP);
+    pressed = !digitalRead(this->buttonPin);
 } 
 
 
@@ -86,4 +91,3 @@ void Switcher::setReleaseCallback(void (*releaseCallbackPtr)()) {
 
 
 #endif
-

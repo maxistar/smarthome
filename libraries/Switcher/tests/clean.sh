@@ -1,3 +1,3 @@
 #!/bin/bash
 
-rm runner runner.cpp *.o *.gcda *.gcno reports/*.html
+rm runner runner.cpp *.gcda *.gcno reports/*.html
