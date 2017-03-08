@@ -1,17 +1,12 @@
 #ifndef TIMEOUT_H
 #define TIMEOUT_H
-#if ARDUINO >= 100
- #include "Arduino.h"
-#else
- #include "WProgram.h"
-#endif
-
+#include "Arduino.h"
 
 class Timeout {
 private:
-  long milliseconds = 0;
-  void (*onTimerCallback)() = NULL;
-  long triggerValue = NULL;
+  long milliseconds;
+  void (*onTimerCallback)();
+  long triggerValue;
 
 
 public:
@@ -22,12 +17,14 @@ public:
 };
 
 Timeout::Timeout(long value, void (*callback)()) {
+	milliseconds = 0;
+	triggerValue = 0;
     this->onTimerCallback = callback;
     this->milliseconds = value;
 }
 
 void Timeout::cancel() {
-    this->triggerValue = NULL;
+    this->triggerValue = 0;
 }
 
 void Timeout::start() {
@@ -35,8 +32,8 @@ void Timeout::start() {
 }
 
 void Timeout::loop() {
-    if (this->triggerValue != NULL && this->triggerValue >= millis()) {
-        this->triggerValue == NULL;
+    if (this->triggerValue != 0 && this->triggerValue <= millis()) {
+        this->triggerValue = 0;
         this->onTimerCallback();
     }
 }
