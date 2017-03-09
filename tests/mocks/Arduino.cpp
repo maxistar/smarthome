@@ -17,6 +17,10 @@ int digitalRead(int pin) {
     return _pinDigitalValues[pin];
 }
 
+void digitalWrite(int pin, int value) {
+    _pinDigitalValues[pin] = value;
+}
+
 int analogRead(int pin) {
     return _pinAnalogValues[pin];
 }

@@ -21,6 +21,7 @@ void pinMode(int, int);
 long millis();
 
 int digitalRead(int);
+void digitalWrite(int, int);
 
 //testing parts
 int getPinMode(int);
