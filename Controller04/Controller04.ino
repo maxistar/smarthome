@@ -96,13 +96,13 @@
 #define TEMP_READ_INTERVAL 10000
 
 //should be at lease 60 seconds to make fan on
-#define LIGHT_TIMEOUT_TO_SWITCH_FAN 60000
+#define LIGHT_TIMEOUT_TO_SWITCH_FAN 6000
 
 //should be at lease 60 seconds to make fan on
-#define FAN_WORK_DURATION 60000
+#define FAN_WORK_DURATION 6000
 
 //timeout before switch off light
-#define LIGHT_TIMEOUT_TO_SWITCH_OFF_LIGHT 60000
+#define LIGHT_TIMEOUT_TO_SWITCH_OFF_LIGHT 6000
 
 // адрес ведомого
 #define ID   4
@@ -120,7 +120,7 @@ OneWire ds(TEMP_SENSOR_PIN_ENTRY_FLOOR); // на пине 10 (нужен рез�
 //sample temperature sensor on breadboard
 byte addr[8] = {0x28,0x96,0xB0,0xAC,0x05,0x00,0x00,0xDC};
 
-byte fanIsOn = 0;
+byte fanIsOn = LOW;
 byte shouldSwitchFan = 0;
 byte switchLightOffWhenDoorClosed = true;
 
@@ -128,15 +128,6 @@ void lightOnTimeoutCallback() {
     shouldSwitchFan = true;
 }
 Timeout lightOnTimeout(LIGHT_TIMEOUT_TO_SWITCH_FAN, lightOnTimeoutCallback);
-
-
-void turnOnFan() {
-    if (fanIsOn == HIGH) return;
-    shouldSwitchFan = false;
-    fanIsOn = HIGH;
-    digitalWrite(FAN_PIN, HIGH);
-    bitWrite(modbus[MODBUS_RW_REGISTERS], MODBUS_RW_SHOWER_FAN, HIGH);    
-};
 
 void turnOffFan() {
     if (fanIsOn == LOW) return;
@@ -148,7 +139,17 @@ void turnOffFan() {
 void fanWorkTimeoutCallback() {
     turnOffFan();
 }
+
 Timeout fanWorkTimeout(FAN_WORK_DURATION, fanWorkTimeoutCallback);
+
+void turnOnFan() {
+    if (fanIsOn == HIGH) return;
+    shouldSwitchFan = false;
+    fanIsOn = HIGH;
+    digitalWrite(FAN_PIN, HIGH);
+    bitWrite(modbus[MODBUS_RW_REGISTERS], MODBUS_RW_SHOWER_FAN, HIGH);
+    fanWorkTimeout.start();    
+};
 
 CeilingControllerConfig ceilingControllerConfig = {
   /*.pinW1 =*/ W1_PIN,
@@ -189,21 +190,21 @@ void lightOffTimeoutCallback() {
 }
 Timeout lightOffTimeout(LIGHT_TIMEOUT_TO_SWITCH_OFF_LIGHT, lightOffTimeoutCallback);
 
-
-void showerFloorChanged(byte value) {
-    bitWrite(modbus[MODBUS_RW_REGISTERS], MODBUS_RW_SHOWER_FLOOR_HEATER, value);  
-}
-DummyHeaterController showerFloor(WARM_FLOOR_SHOWER_PIN);
-
-void entryFloorChanged(byte value) {
+void entryFloorChanged(char value) {
     bitWrite(modbus[MODBUS_RW_REGISTERS], MODBUS_RW_ENTRY_FLOOR_HEATER, value);
 }
-DummyHeaterController entryFloor(WARM_FLOOR_ENTRY_PIN);
+DummyHeaterController entryFloor(WARM_FLOOR_ENTRY_PIN, entryFloorChanged);
+
+void showerFloorChanged(char value) {
+    bitWrite(modbus[MODBUS_RW_REGISTERS], MODBUS_RW_SHOWER_FLOOR_HEATER, value);  
+}
+DummyHeaterController showerFloor(WARM_FLOOR_SHOWER_PIN, showerFloorChanged);
+
 
 //геркон на дверь в душ
 void sw1Change(char value) {
     //write to modbus changed state
-    bitWrite(modbus[MODBUS_R_REGISTERS], MODBUS_R_SHOWER_DOOR_SENSOR, !value);
+    bitWrite(modbus[MODBUS_R_REGISTERS], MODBUS_R_SHOWER_DOOR_SENSOR, value);
 
     //show lights if door is open
     if (value == 0 && ceilingController.isOff()) {
@@ -217,7 +218,7 @@ Switcher sw1(SHOWER_DOOR_SWITCH, sw1Change);
 
 //геркон на дверь в кухню 
 void sw2Change(char value) {
-    bitWrite(modbus[MODBUS_R_REGISTERS], MODBUS_R_KITCHEN_DOOR_SENSOR, !value);
+    bitWrite(modbus[MODBUS_R_REGISTERS], MODBUS_R_KITCHEN_DOOR_SENSOR, value);
 }
 Switcher sw2(KITCHEN_DOOR_SWITCH, sw2Change);
 
@@ -253,15 +254,9 @@ Switcher swPir(PIR_SENSOR, swPirChange);
 
 //SHOWER WATER SENSOR
 void sw4Change(char value) {
-    bitWrite(modbus[MODBUS_R_REGISTERS], MODBUS_R_LEAK_SENSOR, !value);
+    bitWrite(modbus[MODBUS_R_REGISTERS], MODBUS_R_LEAK_SENSOR, value);
 }
-Switcher sw4(SHOWER_WATER_SENSOR, sw4Change);
-
-//выключатель света в ванную
-void sw5Change(char value) {
-    bitWrite(modbus[MODBUS_R_REGISTERS], MODBUS_R_LIGHT_BUTTON, !value);
-}
-Switcher sw5(SHOWER_DOOR_SWITCH, sw5Change); 
+Switcher sw4(SHOWER_WATER_SENSOR, INPUT, sw4Change);
 
 void dht1TemperatureChange(float value) {
     modbus[MODBUS_SHOWER_ROOM_TEMPERATURE] = (uint16_t) value;
@@ -288,8 +283,12 @@ void io_poll() {
 //  modbus[MODBUS_ERRORS_COUNT] = slave.getErrCnt();
 
     showerFloor.setInterval(modbus[MODBUS_SHOWER_FLOOR_INTERVAL]);
-    showerFloor.setScale(modbus[MODBUS_SHOWER_FLOOR_SCALE]/100);
+    showerFloor.setScale(modbus[MODBUS_SHOWER_FLOOR_SCALE] / 100.0);
 
+    entryFloor.setInterval(modbus[MODBUS_ENTRY_FLOOR_INTERVAL]);
+    entryFloor.setScale(modbus[MODBUS_ENTRY_FLOOR_SCALE] / 100.0);
+
+    
     byte isShowerFloorBitOn = bitRead(modbus[MODBUS_RW_REGISTERS], MODBUS_RW_SHOWER_FLOOR_HEATER);
     if (isShowerFloorBitOn != showerFloor.isOn()) {
         showerFloor.setOnValue(isShowerFloorBitOn);
@@ -308,10 +307,7 @@ void io_poll() {
            turnOffFan();
        }
     }
-    
-    entryFloor.setInterval(modbus[MODBUS_ENTRY_FLOOR_INTERVAL]);
-    entryFloor.setScale(modbus[MODBUS_ENTRY_FLOOR_SCALE]/100);
-
+   
 }
 
 void setup() 
@@ -319,6 +315,14 @@ void setup()
   for (int i = 0; i < MODBUS_SIZE; i++) {
       modbus[i] = 0;
   }
+  modbus[MODBUS_SHOWER_FLOOR_INTERVAL] = showerFloor.getInterval();
+  modbus[MODBUS_SHOWER_FLOOR_SCALE] = 100 * showerFloor.getScale();
+  bitWrite(modbus[MODBUS_RW_REGISTERS], MODBUS_RW_SHOWER_FLOOR_HEATER, 1);
+
+
+  modbus[MODBUS_ENTRY_FLOOR_INTERVAL] = entryFloor.getInterval();
+  modbus[MODBUS_ENTRY_FLOOR_SCALE] = 100 * entryFloor.getScale();
+  bitWrite(modbus[MODBUS_RW_REGISTERS], MODBUS_RW_ENTRY_FLOOR_HEATER, 1);
   
   dht1.setup();
   lightSwitcher.setup();
@@ -329,10 +333,11 @@ void setup()
   sw2.setup();
   swPir.setup();
   sw4.setup();
-  sw5.setup();
+  //sw5.setup();
   
   ceilingController.setup();
   showerFloor.setup();
+  entryFloor.setup();
   
   slave.begin( 19200 );
 }
@@ -346,7 +351,7 @@ void loop()
   sw2.loop();
   swPir.loop();
   sw4.loop();
-  sw5.loop();
+  //sw5.loop();
   
   dht1.loop();
   dht2.loop();
@@ -356,6 +361,7 @@ void loop()
 
   ceilingController.loop();
   showerFloor.loop();
+  entryFloor.loop();
 
   lightOnTimeout.loop();
   fanWorkTimeout.loop();

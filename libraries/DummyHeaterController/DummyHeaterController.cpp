@@ -1,14 +1,13 @@
 #include "Arduino.h"
 #include "DummyHeaterController.h"
 
-
 void DummyHeaterController::_setup() {
 	scale = 0.5;
-	interval = 60000; //1 minute
-	intervalTime = 0;
-	triggerTime = 0;
+	interval = 6000; //1 minute
+	intervalTime = interval;
+	triggerTime = interval * scale;
 	pinNumber = 0;
-	value = 0;
+	value = 1;
 	onChangeCallback = NULL;
 }
 
@@ -26,29 +25,33 @@ DummyHeaterController::DummyHeaterController(int pinNumber, void (*onChangeCallb
 };
 
 void DummyHeaterController::setup() {
-    this->intervalTime = millis() + interval;
+    //this->intervalTime = millis() + interval;
     pinMode(this->pinNumber, OUTPUT);
+    digitalWrite(this->pinNumber, HIGH);
 };
 
 void DummyHeaterController::loop() {
-    long currentTime = millis();
-    if (currentTime > this->intervalTime) {
-        this->intervalTime = currentTime + this->interval;
-        this->triggerTime = currentTime + this->interval * this->scale;
-        if (this->triggerTime > currentTime) {
-            digitalWrite(this->pinNumber, HIGH);
-            if (onChangeCallback != NULL) {
-                onChangeCallback(HIGH);
-            }
-            this->value = 1;
-        }
-    }
+	//digitalWrite(this->pinNumber, HIGH);
+	//return;
+	long currentTime = millis();
+
     if (this->value == 1 && currentTime > this->triggerTime) {
-        digitalWrite(this->pinNumber, LOW);
-        if (onChangeCallback != NULL) {
+    	digitalWrite(this->pinNumber, LOW);
+    	this->value = 0;
+    	if (onChangeCallback != NULL) {
             onChangeCallback(LOW);
         }
-        this->value = 0;
+    }
+
+    if (currentTime >= this->intervalTime) {
+        this->triggerTime = this->intervalTime + this->interval * this->scale;
+        this->intervalTime = this->intervalTime + this->interval;
+
+        digitalWrite(this->pinNumber, HIGH);
+        this->value = 1;
+        if (onChangeCallback != NULL) {
+            onChangeCallback(HIGH);
+        }
     }
 };
 
@@ -63,6 +66,14 @@ void DummyHeaterController::setScale(float value) {
     this->scale = value;
 };
 
+long DummyHeaterController::getInterval() {
+	return this->interval;
+}
+float DummyHeaterController::getScale() {
+	return this->scale;
+}
+
+
 char DummyHeaterController::isOn() {
     return this->value;
 };
@@ -71,6 +82,9 @@ void DummyHeaterController::setOnValue(char value) {
     if (this->value != value) {
         this->value = value;
         digitalWrite(this->pinNumber, value);
+        if (onChangeCallback != NULL) {
+            onChangeCallback(value);
+        }
     }
 };
 

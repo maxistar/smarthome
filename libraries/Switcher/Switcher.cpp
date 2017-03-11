@@ -10,6 +10,12 @@ Switcher::Switcher(int buttonPin){
 	this->_setup(buttonPin);
 } 
 
+Switcher::Switcher(int buttonPin, int mode, void (*changeCallbackPtr)(char)) {
+	this->_setup(buttonPin);
+	this->mode = mode;
+	this->changeCallbackPtr = changeCallbackPtr;
+}
+
 Switcher::Switcher(int buttonPin, void (*changeCallbackPtr)(char)) {
 	this->_setup(buttonPin);
 	this->changeCallbackPtr = changeCallbackPtr;
@@ -17,6 +23,7 @@ Switcher::Switcher(int buttonPin, void (*changeCallbackPtr)(char)) {
 
 void Switcher::_setup(int buttonPin) {
     this->buttonPin = buttonPin;
+    this->mode = INPUT_PULLUP;
     changeCallbackPtr = NULL;
     pressCallbackPtr = NULL;
     releaseCallbackPtr = NULL;
@@ -25,7 +32,7 @@ void Switcher::_setup(int buttonPin) {
 }
 
 void Switcher::setup(){
-    pinMode(this->buttonPin, INPUT_PULLUP);
+    pinMode(this->buttonPin, this->mode);
     pressed = !digitalRead(this->buttonPin);
 } 
 

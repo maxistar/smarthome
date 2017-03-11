@@ -19,6 +19,9 @@ public:
     DummyHeaterController(int pinNumber, void (*onChangeCallback)(char value));
     void setInterval(long value);
     void setScale(float value);
+    long getInterval();
+    float getScale();
+
     void setup();
     void loop();
     char isOn();

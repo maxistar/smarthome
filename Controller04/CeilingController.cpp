@@ -52,7 +52,7 @@ CeilingController::CeilingController(CeilingControllerConfig *config, void (*onC
 void CeilingController::init(CeilingControllerConfig *config) {
     this->config = config;
     this->currentPresetNum = 0;
-    this->restorePresets();
+    
 
     w1 = new SimpleLedDimmer(this, config->pinW1, &config->modbus[config->modbusW1], onPowerOnW1, onPowerOffW1);
     w2 = new SimpleLedDimmer(this, config->pinW2, &config->modbus[config->modbusW2], onPowerOnW2, onPowerOffW2);
@@ -92,6 +92,7 @@ void CeilingController::restorePresets() {
 };
 
 void CeilingController::setup() {
+  this->restorePresets();
   this->config->modbus[config->modbusPresetNum] = this->currentPresetNum;
   pinMode(this->config->pinPower, OUTPUT);
 
