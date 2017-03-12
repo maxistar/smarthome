@@ -5,7 +5,7 @@
 int changed = 0;
 int changeValue = 0;
 
-void changeCallback(char value) {
+void changeCallback(uint8_t value) {
     changed = 1;
     changeValue = value;
 };

@@ -8,16 +8,16 @@
 
 class LightSwitcher {
     int buttonPin;
-    char pressed; 
-    char light1_on;
+    uint8_t pressed;
+    uint8_t light1_on;
 
 
     //debouncing staff
-    char isDebouncing;
+    uint8_t isDebouncing;
     long debounceLastTime;  
     void checkSwitches();
 
-    void (*onPressCallback)(char state);
+    void (*onChangeCallback)(uint8_t state);
     void (*onReleaseCallback)();
     void (*onKeepPressedCallback)();
 
@@ -25,11 +25,12 @@ class LightSwitcher {
 
     public:
     LightSwitcher(int buttonPin);
-    LightSwitcher(int buttonPin, void (*onPressCallback)(char state));
-    LightSwitcher(int buttonPin, void (*onPressCallback)(char state), void (*onReleaseCallback)());
-    LightSwitcher(int buttonPin, void (*onPressCallback)(char state), void (*onReleaseCallback)(), void (*onKeepPressedCallback)());
+    LightSwitcher(int buttonPin, void (*onChangeCallback)(uint8_t state));
+    LightSwitcher(int buttonPin, void (*onChangeCallback)(uint8_t state), void (*onReleaseCallback)());
+    LightSwitcher(int buttonPin, void (*onChangeCallback)(uint8_t state), void (*onReleaseCallback)(), void (*onKeepPressedCallback)());
     void loop();
     void setup();
+    void setOn(uint8_t state);
 };
 
 

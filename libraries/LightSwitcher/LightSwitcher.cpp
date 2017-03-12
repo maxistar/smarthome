@@ -3,7 +3,7 @@
 #include "LightSwitcher.h"
 
 void LightSwitcher::_init() {
-    onPressCallback = NULL;
+    onChangeCallback = NULL;
     onReleaseCallback = NULL;
     onKeepPressedCallback = NULL;
 }
@@ -13,23 +13,23 @@ LightSwitcher::LightSwitcher(int buttonPin){
 	this->buttonPin = buttonPin;
 } 
 
-LightSwitcher::LightSwitcher(int buttonPin, void (*onPressCallback)(char)){
+LightSwitcher::LightSwitcher(int buttonPin, void (*onChangeCallback)(uint8_t)){
     _init();
 	this->buttonPin = buttonPin;
-    this->onPressCallback = onPressCallback;
+    this->onChangeCallback = onChangeCallback;
 }
 
-LightSwitcher::LightSwitcher(int buttonPin, void (*onPressCallback)(char), void (*onReleaseCallback)()){
+LightSwitcher::LightSwitcher(int buttonPin, void (*onChangeCallback)(uint8_t), void (*onReleaseCallback)()){
     _init();
 	this->buttonPin = buttonPin;
-    this->onPressCallback = onPressCallback;
+    this->onChangeCallback = onChangeCallback;
     this->onReleaseCallback = onReleaseCallback;
 }
 
-LightSwitcher::LightSwitcher(int buttonPin, void (*onPressCallback)(char), void (*onReleaseCallback)(), void (*onKeepPressedCallback)()){
+LightSwitcher::LightSwitcher(int buttonPin, void (*onChangeCallback)(uint8_t), void (*onReleaseCallback)(), void (*onKeepPressedCallback)()){
     _init();
 	this->buttonPin = buttonPin;
-    this->onPressCallback = onPressCallback;
+    this->onChangeCallback = onChangeCallback;
     this->onReleaseCallback = onReleaseCallback;
     this->onKeepPressedCallback = onKeepPressedCallback;
 }
@@ -46,34 +46,33 @@ void LightSwitcher::checkSwitches()
     if (this->isDebouncing && (this->debounceLastTime + DEBOUNCE) > millis()) {
         return; // not enough time has passed to debounce
     }
-    char currentstate = !digitalRead(this->buttonPin);   // read the button
+    uint8_t currentstate = !digitalRead(this->buttonPin);   // read the button
     
-    if (currentstate != this->pressed) {
-        if (currentstate == 1) {
-            // just pressed
-            if (this->light1_on == 1) {
-               this->light1_on = 0;
+        if (currentstate != this->pressed) {
+            if (currentstate == 1) {
+                // just pressed
+                if (this->light1_on != 1) {
+                    this->light1_on = 1;
+                } else {
+                	this->light1_on = 0;
+                }
+                if (onChangeCallback != NULL) {
+                    onChangeCallback(this->light1_on);
+                }
+                this->pressed = 1;
             }
-            else {
-                this->light1_on = 1;
+            else if (currentstate == 0) {
+            	// just released
+                if (onReleaseCallback != NULL) {
+                    onReleaseCallback();
+                }
+                this->pressed = 0;
             }
-            if (onPressCallback != NULL) {
-                onPressCallback(this->light1_on);              
-            }
-            this->pressed = 1;
+            this->isDebouncing = 1;
         }
-        else if (currentstate == 0) {
-            // just released
-            if (onReleaseCallback != NULL) {
-                onReleaseCallback();              
-            }
-            this->pressed = 0;
+        else {
+            this->isDebouncing = 0;
         }
-        this->isDebouncing = 1;
-    } 
-    else {
-        this->isDebouncing = 0; 
-    }
     // ok we have waited DEBOUNCE milliseconds, lets reset the timer
     this->debounceLastTime = millis();
 }
@@ -84,4 +83,8 @@ void LightSwitcher::loop() {
     if (this->pressed && onKeepPressedCallback != NULL) {
         onKeepPressedCallback();
     }
+}
+
+void LightSwitcher::setOn(uint8_t state) {
+	this->light1_on = state;
 }

@@ -10,13 +10,13 @@ private:
     long intervalTime;
     long triggerTime;
     int pinNumber;
-    char value;
-    void (*onChangeCallback)(char value);
+    uint8_t value;
+    void (*onChangeCallback)(uint8_t value);
     void _setup();
 
 public:
     DummyHeaterController(int pinNumber);
-    DummyHeaterController(int pinNumber, void (*onChangeCallback)(char value));
+    DummyHeaterController(int pinNumber, void (*onChangeCallback)(uint8_t value));
     void setInterval(long value);
     void setScale(float value);
     long getInterval();
@@ -24,8 +24,8 @@ public:
 
     void setup();
     void loop();
-    char isOn();
-    void setOnValue(char value);
+    uint8_t isOn();
+    void setOnValue(uint8_t value);
 };
 
 #endif

@@ -16,6 +16,9 @@
 #define TRUE 0x1
 #define FALSE 0x0
 
+#define uint8_t unsigned char
+#define int8_t char
+
 void pinMode(int, int);
 
 long millis();

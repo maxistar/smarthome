@@ -18,7 +18,7 @@ DummyHeaterController::DummyHeaterController(int pinNumber) {
 
 
 
-DummyHeaterController::DummyHeaterController(int pinNumber, void (*onChangeCallback)(char value)) {
+DummyHeaterController::DummyHeaterController(int pinNumber, void (*onChangeCallback)(uint8_t value)) {
     this->_setup();
 	this->pinNumber = pinNumber;
     this->onChangeCallback = onChangeCallback;
@@ -74,11 +74,11 @@ float DummyHeaterController::getScale() {
 }
 
 
-char DummyHeaterController::isOn() {
+uint8_t DummyHeaterController::isOn() {
     return this->value;
 };
 
-void DummyHeaterController::setOnValue(char value) {
+void DummyHeaterController::setOnValue(uint8_t value) {
     if (this->value != value) {
         this->value = value;
         digitalWrite(this->pinNumber, value);

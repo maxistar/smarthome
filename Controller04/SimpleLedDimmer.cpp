@@ -38,7 +38,7 @@ void SimpleLedDimmer::doAnimation() {
   }
   this->lastTime = millis();
 
-  byte target = this->lightOn ? *maxValue : 0;
+  uint8_t target = this->lightOn ? *maxValue : 0;
   if (this->lightValue == target) return; //no need to animate
 
   if (this->lightValue < target) { //going up

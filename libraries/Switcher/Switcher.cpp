@@ -10,13 +10,13 @@ Switcher::Switcher(int buttonPin){
 	this->_setup(buttonPin);
 } 
 
-Switcher::Switcher(int buttonPin, int mode, void (*changeCallbackPtr)(char)) {
+Switcher::Switcher(int buttonPin, int mode, void (*changeCallbackPtr)(uint8_t)) {
 	this->_setup(buttonPin);
 	this->mode = mode;
 	this->changeCallbackPtr = changeCallbackPtr;
 }
 
-Switcher::Switcher(int buttonPin, void (*changeCallbackPtr)(char)) {
+Switcher::Switcher(int buttonPin, void (*changeCallbackPtr)(uint8_t)) {
 	this->_setup(buttonPin);
 	this->changeCallbackPtr = changeCallbackPtr;
 }
@@ -42,8 +42,8 @@ void Switcher::checkSwitches()
     if (this->isDebouncing && (this->debounceLastTime + DEBOUNCE) > millis()) {
         return; // not enough time has passed to debounce
     }
-    char buttonState = digitalRead(this->buttonPin);
-    char currentState = !buttonState;   // read the button
+    uint8_t buttonState = digitalRead(this->buttonPin);
+    uint8_t currentState = !buttonState;   // read the button
 
     if (currentState != this->pressed) {
         this->pressed = currentState;
@@ -79,13 +79,13 @@ void Switcher::_onReleased() {
     }
 }
 
-void Switcher::_onChanged(char state) {
+void Switcher::_onChanged(uint8_t state) {
     if (changeCallbackPtr != NULL) {
         changeCallbackPtr(state);
     }
 }
 
-void Switcher::setChangeCallback(void (*changeCallbackPtr)(char)) {
+void Switcher::setChangeCallback(void (*changeCallbackPtr)(uint8_t)) {
     this->changeCallbackPtr = changeCallbackPtr;
 }
 void Switcher::setPressCallback(void (*pressCallbackPtr)()) {
@@ -93,6 +93,10 @@ void Switcher::setPressCallback(void (*pressCallbackPtr)()) {
 }
 void Switcher::setReleaseCallback(void (*releaseCallbackPtr)()) {
     this->releaseCallbackPtr = releaseCallbackPtr;
+}
+
+uint8_t Switcher::isOn() {
+	return !pressed;
 }
 
 

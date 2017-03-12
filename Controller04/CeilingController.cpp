@@ -131,11 +131,11 @@ void CeilingController::off() {
     }
 };
 
-char CeilingController::isOn() {
+uint8_t CeilingController::isOn() {
     return this->onValue;
 };
 
-char CeilingController::isOff() {
+uint8_t CeilingController::isOff() {
     return this->onValue == 0;
 };
 
@@ -174,17 +174,6 @@ void CeilingController::loop() {
       this->presets[this->currentPresetNum].b = this->config->modbus[this->config->modbusB];
   }
 
-  char modbusOn = bitRead(this->config->modbus[this->config->modbusReadWriteRegisters], this->config->modbusOnBit);
-  if (modbusOn != onValue) {
-      if (this->onValue == 1) {
-          this->off();
-      } else {
-          this->on();
-      }
-  }
-
-
-
   w1->loop();
   w2->loop();
   r->loop();
@@ -192,4 +181,12 @@ void CeilingController::loop() {
   b->loop();
 
 
+};
+
+void CeilingController::setOn(uint8_t value) {
+	if (value) {
+		this->on();
+	} else {
+		this->off();
+	}
 };
