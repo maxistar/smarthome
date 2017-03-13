@@ -131,6 +131,16 @@ void CeilingController::off() {
     }
 };
 
+void CeilingController::nextMode() {
+	if (this->currentPresetNum < PRESETS_COUNT-1) {
+		this->currentPresetNum++;
+	} else {
+		this->currentPresetNum = 0;
+	}
+	this->config->modbus[config->modbusPresetNum] = this->currentPresetNum;
+	this->copyPresetsToModbus();
+}
+
 uint8_t CeilingController::isOn() {
     return this->onValue;
 };

@@ -13,7 +13,8 @@ public:
   Timeout(long, void (*)());
   void start();
   void cancel();
-  void loop();  
+  void loop();
+  uint8_t started();
 };
 
 Timeout::Timeout(long value, void (*callback)()) {
@@ -29,6 +30,10 @@ void Timeout::cancel() {
 
 void Timeout::start() {
     this->triggerValue = millis() + this->milliseconds;
+}
+
+uint8_t Timeout::started() {
+    return this->triggerValue != 0;
 }
 
 void Timeout::loop() {

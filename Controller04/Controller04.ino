@@ -7,70 +7,12 @@
 #include "CeilingController.h"
 #include "DummyHeaterController.h"
 #include "Timeout.h"
+#include "timeouts_def.h"
+#include "modbus_def.h"
 
 #include <OneWire.h>
 #include <EEPROM.h>
 
-#define MODBUS_SIZE 17 
-
-#define MODBUS_R_REGISTERS 0
-#define MODBUS_RW_REGISTERS 1
-// 1 - 1 word - registers to read
-// 1.0 light switch shower room 
-#define MODBUS_R_LIGHT_BUTTON 0
-// 1.1 door sensor shower room
-#define MODBUS_R_SHOWER_DOOR_SENSOR 1
-// 1.2 shower water sensor 
-#define MODBUS_R_LEAK_SENSOR 2
-// 1.3 door sensor kitchen room
-#define MODBUS_R_KITCHEN_DOOR_SENSOR 3
-// 1.4 PIR sensor shower room
-#define MODBUS_R_SHOWER_PIR_SENSOR 4
- 
-// 2 - 1 word - registers to write/read
-// 2.0 light shower room
-#define MODBUS_RW_SHOWER_LIGHT 0
-// 2.1 fan shower room
-#define MODBUS_RW_SHOWER_FAN 1
-// 2.2 warm floor heater
-#define MODBUS_RW_SHOWER_FLOOR_HEATER 2
-// 2.3 warm floor near door
-#define MODBUS_RW_ENTRY_FLOOR_HEATER 3
-
- 
-// 3 - 5 words
-// 3.1 temperature in shower room 
-#define MODBUS_SHOWER_ROOM_TEMPERATURE 2
-// 3.2 humidity
-#define MODBUS_SHOWER_ROOM_HUMIDITY 3
-// 3.3 temperature of warm floor in shower room
-#define MODBUS_SHOWER_ROOM_FLOOR_TEMPERATURE 4
-// 3.4 temperature of warm floor near main entry door
-#define MODBUS_ENTRY_FLOOR_TEMPERATURE 5
-// 3.5 count of modbus errors
-#define MODBUS_ERRORS_COUNT 6
-  
-// 4 - 6 words hold registers
-// 4.1 - light preset num
-#define MODBUS_LIGHT_PRESET_NUM 7
-// 4.2 - maximum pwd value W1
-#define MODBUS_LIGHT_W1_VALUE 8
-// 4.3 - maximum pwd value W2
-#define MODBUS_LIGHT_W2_VALUE 9
-// 4.4 - maximum pwd value R
-#define MODBUS_LIGHT_R_VALUE 10
-// 4.5 - maximum pwd value G
-#define MODBUS_LIGHT_G_VALUE 11
-// 4.6 - maximum pwd value B
-#define MODBUS_LIGHT_B_VALUE 12
-
-#define MODBUS_SHOWER_FLOOR_INTERVAL 13
-
-#define MODBUS_SHOWER_FLOOR_SCALE 14
-
-#define MODBUS_ENTRY_FLOOR_INTERVAL 15
-
-#define MODBUS_ENTRY_FLOOR_SCALE 16
 
 // номер пина, к которому подсоединен датчик температуры
 #define TEMP_SENSOR_PIN_SHOWER 4 
@@ -91,18 +33,8 @@
 #define WARM_FLOOR_SHOWER_PIN A3
 #define WARM_FLOOR_ENTRY_PIN A2
 
-// temperature read interval
-//once per minute will be ok
-#define TEMP_READ_INTERVAL 10000
 
-//should be at lease 60 seconds to make fan on
-#define LIGHT_TIMEOUT_TO_SWITCH_FAN 6000
 
-//should be at lease 60 seconds to make fan on
-#define FAN_WORK_DURATION 6000
-
-//timeout before switch off light
-#define LIGHT_TIMEOUT_TO_SWITCH_OFF_LIGHT 6000
 
 // адрес ведомого
 #define ID   4
@@ -141,6 +73,8 @@ void fanWorkTimeoutCallback() {
 }
 
 Timeout fanWorkTimeout(FAN_WORK_DURATION, fanWorkTimeoutCallback);
+
+Timeout changeModeTimeout(LONG_PRESS_TIMEOUT, longPressTimeoutCallback);
 
 void turnOnFan() {
     if (fanIsOn == HIGH) return;
@@ -184,6 +118,10 @@ void onCeilingLightChange(uint8_t value) {
 }
 CeilingController ceilingController(&ceilingControllerConfig, onCeilingLightChange);
 
+void longPressTimeoutCallback() {
+	ceilingController.nextMode();
+	modbus[MODBUS_ERRORS_COUNT];
+}
 
 void entryFloorChanged(uint8_t value) {
     bitWrite(modbus[MODBUS_RW_REGISTERS], MODBUS_RW_ENTRY_FLOOR_HEATER, value);
@@ -205,9 +143,15 @@ Switcher sw2(KITCHEN_DOOR_SWITCH, sw2Change);
 
 void onLightRelease() {
     bitWrite(modbus[MODBUS_R_REGISTERS], MODBUS_R_LIGHT_BUTTON, 0);
+    changeModeTimeout.cancel();
+    modbus[MODBUS_ERRORS_COUNT]++;
 }
 void onLightLongPress() {
   //code to work with modes
+	if (ceilingController.isOn() && !changeModeTimeout.started()) {
+		modbus[MODBUS_ERRORS_COUNT]++;
+		changeModeTimeout.start();
+	}
 }
 LightSwitcher lightSwitcher(SHOWER_LIGHT_SWITCH, onLightPress, onLightRelease, onLightLongPress);
 
@@ -288,7 +232,7 @@ void floorTemperatureChange(float value) {
 Ds18b20Sensor ds19b20(&ds, addr, TEMP_READ_INTERVAL, floorTemperatureChange);
 
 void io_poll() {  
-    modbus[MODBUS_ERRORS_COUNT] = slave.getErrCnt();
+    //modbus[MODBUS_ERRORS_COUNT] = slave.getErrCnt();
 
     showerFloor.setInterval(modbus[MODBUS_SHOWER_FLOOR_INTERVAL]);
     showerFloor.setScale(modbus[MODBUS_SHOWER_FLOOR_SCALE] / 100.0);
@@ -382,6 +326,7 @@ void loop()
   lightOnTimeout.loop();
   fanWorkTimeout.loop();
   lightOffTimeout.loop();
+  changeModeTimeout.loop();
   
   //обновляем данные в регистрах Modbus и в пользовательской программе
   io_poll();

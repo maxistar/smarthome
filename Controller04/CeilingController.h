@@ -89,6 +89,7 @@ public:
     void setOn(uint8_t);
     uint8_t isOn();
     uint8_t isOff();
+    void nextMode();
 };
 
 #endif
