@@ -6,6 +6,9 @@ void LightSwitcher::_init() {
     onChangeCallback = NULL;
     onReleaseCallback = NULL;
     onKeepPressedCallback = NULL;
+    press_before_unpress = 0;
+    pressed = 0;
+    light_on = 0;
 }
 
 LightSwitcher::LightSwitcher(int buttonPin){
@@ -51,17 +54,27 @@ void LightSwitcher::checkSwitches()
         if (currentstate != this->pressed) {
             if (currentstate == 1) {
                 // just pressed
-                if (this->light1_on != 1) {
-                    this->light1_on = 1;
+                if (this->light_on != 1) {
+                    this->light_on = 1;
+                    if (onChangeCallback != NULL) {
+                        onChangeCallback(this->light_on);
+                    }
                 } else {
-                	this->light1_on = 0;
+                	this->press_before_unpress = 1;
                 }
-                if (onChangeCallback != NULL) {
-                    onChangeCallback(this->light1_on);
-                }
+
                 this->pressed = 1;
             }
             else if (currentstate == 0) {
+            	if (this->light_on == 1 && press_before_unpress == 1) {
+            	    this->light_on = 0;
+            	    press_before_unpress = 0;
+            	    if (onChangeCallback != NULL) {
+            	        onChangeCallback(this->light_on);
+            	    }
+            	} else {
+            		this->press_before_unpress = 0;
+            	}
             	// just released
                 if (onReleaseCallback != NULL) {
                     onReleaseCallback();
@@ -86,5 +99,5 @@ void LightSwitcher::loop() {
 }
 
 void LightSwitcher::setOn(uint8_t state) {
-	this->light1_on = state;
+	this->light_on = state;
 }

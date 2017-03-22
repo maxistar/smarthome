@@ -9,7 +9,8 @@
 class LightSwitcher {
     int buttonPin;
     uint8_t pressed;
-    uint8_t light1_on;
+    uint8_t light_on;
+    uint8_t press_before_unpress;
 
 
     //debouncing staff
