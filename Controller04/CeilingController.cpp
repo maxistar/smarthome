@@ -1,4 +1,5 @@
 #include "CeilingController.h"
+#include <EEPROM.h>
 
 void onPowerOnW1(CeilingController *c) {
     c->onLedPowerOn(W1_ON_MASK);
@@ -74,6 +75,7 @@ void CeilingController::onLedPowerOff(byte mask) {
     if (this->powerState == 0) {
         digitalWrite(this->config->pinPower, LOW);
     }
+    savePresets();
 };
 
 /**
@@ -82,11 +84,34 @@ void CeilingController::onLedPowerOff(byte mask) {
 void CeilingController::restorePresets() {
   int i;
   for(i=0;i<PRESETS_COUNT;i++) {
-    this->presets[i].w1 = 255;
-    this->presets[i].w2 = 0;
-    this->presets[i].r = 0;
-    this->presets[i].g = 0;
-    this->presets[i].b = 0;
+    this->presets[i].w1 = EEPROM.read(i*5);
+    this->presets[i].w2 = EEPROM.read(i*5+1);
+    this->presets[i].r = EEPROM.read(i*5+2);
+    this->presets[i].g = EEPROM.read(i*5+3);
+    this->presets[i].b = EEPROM.read(i*5+4);
+  };
+  this->copyPresetsToModbus();
+};
+
+void saveValue(byte value, int address) {
+  byte stored = EEPROM.read(address);
+  if (stored != value) {
+    EEPROM.write(address, value);
+  }
+}
+
+/**
+ * Restore default presents
+ */
+void CeilingController::savePresets() {
+  int i;
+  byte data;
+  for(i=0;i<PRESETS_COUNT;i++) {
+    saveValue(this->presets[i].w1, i*5);
+    saveValue(this->presets[i].w2, i*5+1);
+    saveValue(this->presets[i].r, i*5+2);
+    saveValue(this->presets[i].g, i*5+3);
+    saveValue(this->presets[i].b, i*5+4);
   };
   this->copyPresetsToModbus();
 };

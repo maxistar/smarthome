@@ -51,6 +51,7 @@ private:
     byte currentPresetNum = 0;
     LightsState presets[PRESETS_COUNT];
     void restorePresets();
+    void savePresets();
     byte onValue = 0;
     byte powerState = 0;
 
