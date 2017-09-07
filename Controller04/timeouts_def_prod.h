@@ -3,16 +3,16 @@
 #define TEMP_READ_INTERVAL 10000
 
 //should be at lease 60 seconds to make fan on
-#define LIGHT_TIMEOUT_TO_SWITCH_FAN 6000
+#define LIGHT_TIMEOUT_TO_SWITCH_FAN 60000
 
 //should be at lease 60 seconds to make fan on
-#define FAN_WORK_DURATION 6000
+#define FAN_WORK_DURATION 60000
 
 //timeout before switch off light
-#define LIGHT_TIMEOUT_TO_SWITCH_OFF_LIGHT 6000
+#define LIGHT_TIMEOUT_TO_SWITCH_OFF_LIGHT 60000
 
 //timeout to change ligh mode
 #define LONG_PRESS_TIMEOUT 3000
 
-#define txControlPin  0 
+#define txControlPin  2 
 

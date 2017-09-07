@@ -1,4 +1,4 @@
-#include "CeilingController.h"
+  #include "CeilingController.h"
 #include <EEPROM.h>
 
 void onPowerOnW1(CeilingController *c) {
@@ -157,7 +157,7 @@ void CeilingController::off() {
 };
 
 void CeilingController::nextMode() {
-	if (this->currentPresetNum < PRESETS_COUNT-1) {
+	if (this->currentPresetNum < (PRESETS_COUNT-1)) {
 		this->currentPresetNum++;
 	} else {
 		this->currentPresetNum = 0;

@@ -21,8 +21,6 @@
 #define MODBUS_RW_SHOWER_FAN 1
 // 2.2 warm floor heater
 #define MODBUS_RW_SHOWER_FLOOR_HEATER 2
-// 2.3 warm floor near door
-#define MODBUS_RW_ENTRY_FLOOR_HEATER 3
 
 
 // 3 - 5 words
@@ -32,30 +30,23 @@
 #define MODBUS_SHOWER_ROOM_HUMIDITY 3
 // 3.3 temperature of warm floor in shower room
 #define MODBUS_SHOWER_ROOM_FLOOR_TEMPERATURE 4
-// 3.4 temperature of warm floor near main entry door
-#define MODBUS_ENTRY_FLOOR_TEMPERATURE 5
-// 3.5 count of modbus errors
-#define MODBUS_ERRORS_COUNT 6
+// 3.4 count of modbus errors
+#define MODBUS_ERRORS_COUNT 5
 
 // 4 - 6 words hold registers
 // 4.1 - light preset num
-#define MODBUS_LIGHT_PRESET_NUM 7
+#define MODBUS_LIGHT_PRESET_NUM 6
 // 4.2 - maximum pwd value W1
-#define MODBUS_LIGHT_W1_VALUE 8
+#define MODBUS_LIGHT_W1_VALUE 7
 // 4.3 - maximum pwd value W2
-#define MODBUS_LIGHT_W2_VALUE 9
+#define MODBUS_LIGHT_W2_VALUE 8
 // 4.4 - maximum pwd value R
-#define MODBUS_LIGHT_R_VALUE 10
+#define MODBUS_LIGHT_R_VALUE 9
 // 4.5 - maximum pwd value G
-#define MODBUS_LIGHT_G_VALUE 11
+#define MODBUS_LIGHT_G_VALUE 10
 // 4.6 - maximum pwd value B
-#define MODBUS_LIGHT_B_VALUE 12
+#define MODBUS_LIGHT_B_VALUE 11
 
-#define MODBUS_SHOWER_FLOOR_INTERVAL 13
+#define MODBUS_SHOWER_FLOOR_INTERVAL 12
 
-#define MODBUS_SHOWER_FLOOR_SCALE 14
-
-#define MODBUS_ENTRY_FLOOR_INTERVAL 15
-
-#define MODBUS_ENTRY_FLOOR_SCALE 16
-
+#define MODBUS_SHOWER_FLOOR_SCALE 13

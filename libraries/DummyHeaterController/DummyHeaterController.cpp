@@ -2,8 +2,8 @@
 #include "DummyHeaterController.h"
 
 void DummyHeaterController::_setup() {
-	scale = 0.5;
-	interval = 6000; //1 minute
+	scale = 0.01;
+	interval = 60000; //10 minutes
 	intervalTime = interval;
 	triggerTime = interval * scale;
 	pinNumber = 0;
